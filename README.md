@@ -73,10 +73,10 @@ Raw Review
 ```
 app-store-sentiment-analysis/
 ├── App_Store_Review_Classification.ipynb   ← Full training pipeline
+├── README.md
 ├── app.py                                  ← Gradio app (loads from HF Hub)
-├── requirements.txt                        ← Dependencies
 ├── googleplaystore_user_reviews.csv        ← Dataset
-└── README.md
+└── requirements.txt                        ← Dependencies
 ```
 
 ---
