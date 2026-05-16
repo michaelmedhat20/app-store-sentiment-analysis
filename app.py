@@ -1,38 +1,34 @@
-# ── app.py — App Store Review Sentiment Classifier ───────────────────────────
-# Run this file after training the model in the notebook
-# Requirements: transformers, sentence-transformers, faiss-cpu, gradio, torch
-
 import os
 import torch
 import faiss
 import numpy as np
 import pandas as pd
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
-from sentence_transformers import SentenceTransformer
 import gradio as gr
+from transformers import (AutoTokenizer, AutoModelForSequenceClassification,
+                           pipeline)
+from sentence_transformers import SentenceTransformer
+from huggingface_hub import hf_hub_download
 
 # -- Config -------------------------------------------------------------------
-DRIVE_PATH  = '/content/drive/MyDrive/saved_model'
+MODEL_ID    = 'michaelmedhat20/app-store-sentiment-bert'
 BERT_MAXLEN = 128
 LABEL_NAMES = {0: 'Negative', 1: 'Neutral', 2: 'Positive'}
 SENTIMENT_EMOJI = {'Positive': '✅', 'Neutral': '😐', 'Negative': '🚨'}
 
-# -- Mount Google Drive -------------------------------------------------------
-from google.colab import drive
-drive.mount('/content/drive')
-
 # -- Load BERT ----------------------------------------------------------------
 print('Loading BERT model...')
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-bert_tokenizer = AutoTokenizer.from_pretrained(DRIVE_PATH)
-bert_model     = AutoModelForSequenceClassification.from_pretrained(DRIVE_PATH)
+bert_tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
+bert_model     = AutoModelForSequenceClassification.from_pretrained(MODEL_ID)
 bert_model.to(device).eval()
 print('✅ BERT loaded.')
 
 # -- Load FAISS index and corpus ----------------------------------------------
 print('Loading FAISS index...')
-index         = faiss.read_index(f'{DRIVE_PATH}/faiss.index')
-corpus_df     = pd.read_csv(f'{DRIVE_PATH}/corpus.csv')
+faiss_path  = hf_hub_download(repo_id=MODEL_ID, filename='faiss.index')
+corpus_path = hf_hub_download(repo_id=MODEL_ID, filename='corpus.csv')
+index       = faiss.read_index(faiss_path)
+corpus_df   = pd.read_csv(corpus_path)
 corpus_texts  = corpus_df['text'].tolist()
 corpus_labels = corpus_df['label'].tolist()
 print(f'✅ FAISS loaded — {index.ntotal:,} vectors.')
@@ -124,7 +120,7 @@ def full_pipeline(review_text: str):
 
 # -- Gradio UI ----------------------------------------------------------------
 with gr.Blocks(title='App Store Review Classifier', theme=gr.themes.Soft()) as demo:
-    gr.Markdown('# ⭐ App Store Review Sentiment Classifier\n> BERT + RAG + TinyLlama')
+    gr.Markdown('# ⭐ App Store Review Sentiment Classifier\n> BERT + RAG + TinyLlama — No API needed')
 
     with gr.Row():
         review_input = gr.Textbox(label='Enter App Review',
@@ -149,4 +145,4 @@ with gr.Blocks(title='App Store Review Classifier', theme=gr.themes.Soft()) as d
         inputs=review_input,
     )
 
-demo.launch(share=True)
+demo.launch()

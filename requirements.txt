@@ -1,0 +1,8 @@
+transformers
+torch
+faiss-cpu
+sentence-transformers
+gradio
+huggingface_hub
+pandas
+numpy
